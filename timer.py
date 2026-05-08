@@ -13,20 +13,38 @@ import win32con
 
 # make onefile possible
 import os
+import shutil
 import sys
 
 # controls from json file
 import json
 
-def resource_path(relative_path):
+def get_app_dir():
     if getattr(sys, 'frozen', False):
-        base_path = sys._MEIPASS
-    else:
-        base_path = os.path.abspath(".")
-    return os.path.join(base_path, relative_path)
+        return os.path.dirname(sys.executable)
+    return os.path.dirname(os.path.abspath(__file__))
 
 
-with open(resource_path("controls.json"), "r") as f:
+def resource_path(relative_path):
+    if getattr(sys, 'frozen', False) and hasattr(sys, '_MEIPASS'):
+        return os.path.join(sys._MEIPASS, relative_path)
+    return os.path.join(os.path.dirname(os.path.abspath(__file__)), relative_path)
+
+
+def get_controls_path():
+    return os.path.join(get_app_dir(), 'controls.json')
+
+
+def ensure_controls_file():
+    controls_path = get_controls_path()
+    if not os.path.exists(controls_path):
+        source_path = resource_path('controls.json')
+        if os.path.exists(source_path):
+            shutil.copyfile(source_path, controls_path)
+    return controls_path
+
+
+with open(ensure_controls_file(), 'r', encoding='utf-8') as f:
     controls = json.load(f)
 
 
@@ -412,7 +430,8 @@ def change_controls():
             "timercustom": timercustom_entry.get(),
             "custom_time": custom_time_entry.get()
         }
-        with open("controls.json", "w") as f:
+        controls_path = get_controls_path()
+        with open(controls_path, "w", encoding='utf-8') as f:
             json.dump(new_controls, f, indent=4)
 
         control_dialog_open = False
@@ -430,7 +449,7 @@ def change_controls():
 def change_labels():
     canvas.itemconfig(startstop_label, text=f"Press {get_normal_name(controls['startstop'])} to {'stop' if start_time else 'start'}")
     canvas.itemconfig(visibility_label, text=f"Press {get_normal_name(controls['visibility'])} to toggle visibility")
-    canvas.itemconfig(clickthrough_label, text=f"Press {get_normal_name(controls['clickthrough'])} to toggle focussability")
+    canvas.itemconfig(clickthrough_label, text=f"Press {get_normal_name(controls['clickthrough'])} to toggle click-through")
     canvas.itemconfig(exit_label, text=f"Press {get_normal_name(controls['exit'])} to exit")
     canvas.itemconfig(change_controls_label, text=f"Press {get_normal_name(controls['change_controls'])} to change controls")
     canvas.itemconfig(sound_label, text=f"Press {get_normal_name(controls['sound'])} to turn sound {'on' if not sound_on else 'off'}")
@@ -456,7 +475,7 @@ time_label = canvas.create_text(90, 30, text="Time left: 00s", font=("Arial", 14
 rounds_label = canvas.create_text(90, 60, text="Rounds: 0", font=("Arial", 12), fill="black", anchor="center", justify="center")
 startstop_label = canvas.create_text(90, 90, text=f"Press {get_normal_name(controls['startstop'])} to start", font=("Arial", 10), fill="black", anchor="center", justify="center")
 visibility_label = canvas.create_text(90, 120, text=f"Press {get_normal_name(controls['visibility'])} to toggle visibility", font=("Arial", 10), fill="black", anchor="center", justify="center")
-clickthrough_label = canvas.create_text(90, 150, text=f"Press {get_normal_name(controls['clickthrough'])} to toggle focussability", font=("Arial", 10), fill="black", anchor="center", justify="center")
+clickthrough_label = canvas.create_text(90, 150, text=f"Press {get_normal_name(controls['clickthrough'])} to toggle click-through", font=("Arial", 10), fill="black", anchor="center", justify="center")
 exit_label = canvas.create_text(90, 180, text=f"Press {get_normal_name(controls['exit'])} to exit", font=("Arial", 10), fill="black", anchor="center", justify="center")
 change_controls_label = canvas.create_text(90, 210, text=f"Press {get_normal_name(controls['change_controls'])} to change controls", font=("Arial", 10), fill="black", anchor="center", justify="center")
 sound_label = canvas.create_text(90, 240, text=f"Press {get_normal_name(controls['sound'])} to turn sound {'on' if not sound_on else 'off'}", font=("Arial", 10), fill="black", anchor="center", justify="center")
