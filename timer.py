@@ -1,6 +1,5 @@
 # for timer
 import threading
-from tkinter import dialog
 import winsound  # use winows sound system
 import time  # show currently running time + rounds
 import keyboard  # hotkeys
@@ -278,9 +277,14 @@ def safe_register_key(key, action):
             pass
 
     try:
-        hook = keyboard.on_press_key(key, handler)
+        if key == "/":  # handle slash on numpad
+            hook = keyboard.on_press_key(53, handler)
+        else:
+            hook = keyboard.on_press_key(key, handler)
         keyboard_hooks.append(hook)
         #print("Registered hotkey:", key)
+
+
     except ValueError:
         hook = keyboard.on_press(lambda event: handler(event) if event.name == key else None)
         keyboard_hooks.append(hook)
@@ -366,8 +370,8 @@ def change_controls():
     control_dialog_open = True
 
     def on_dialog_close():
-        global dialog_open
-        dialog_open = False
+        global control_dialog_open
+        control_dialog_open = False
         dialog.destroy()
     
     dialog.protocol("WM_DELETE_WINDOW", on_dialog_close)
@@ -420,6 +424,7 @@ def change_controls():
 
     def save_controls():
         global control_dialog_open
+
         new_controls = {
             "startstop": startstop_entry.get(),
             "visibility": visibility_entry.get(),
