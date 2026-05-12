@@ -1,10 +1,11 @@
 {
-    "startstop": "/",
+    "startstop": "\u00f6",
     "visibility": "\u00fc",
     "clickthrough": "\u00df",
     "exit": "esc",
     "change_controls": "f1",
     "sound": "f2",
     "timercustom": "f3",
-    "custom_time": "40"
+    "custom_time": "40",
+    "volume": 26
 }
