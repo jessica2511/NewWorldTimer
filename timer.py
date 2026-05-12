@@ -1,6 +1,6 @@
 # for timer
 import threading
-import winsound  # use winows sound system
+import pygame
 import time  # show currently running time + rounds
 import keyboard  # hotkeys
 
@@ -17,6 +17,23 @@ import sys
 
 # controls from json file
 import json
+
+# create exe
+# pyinstaller --onefile --windowed --add-data "controls.json;." timer.py
+
+
+start_time = None
+active_timers = []
+keyboard_hooks = []
+rounds = 0
+current_timer_length = 30
+
+hidden = False
+control_dialog_open = False
+sound_on = True
+
+pygame.mixer.init()
+
 
 def get_app_dir():
     if getattr(sys, 'frozen', False):
@@ -45,17 +62,6 @@ def ensure_controls_file():
 
 with open(ensure_controls_file(), 'r', encoding='utf-8') as f:
     controls = json.load(f)
-
-
-start_time = None
-active_timers = []
-keyboard_hooks = []
-rounds = 0
-current_timer_length = 30
-
-hidden = False
-control_dialog_open = False
-sound_on = True
 
 def get_normal_name(key):
     # Map locale-specific keys to their standard equivalents for displaying in GUI
@@ -108,13 +114,7 @@ def blink(nr_blinks):
             color = "#FF8E8E"
             canvas.config(bg=color)
             canvas.update_idletasks()
-            time.sleep(0.3)
-            canvas.config(bg=backgroundcolor)
-            canvas.update_idletasks()
             time.sleep(0.2)
-            canvas.config(bg=color)
-            canvas.update_idletasks()
-            time.sleep(0.3)
             canvas.config(bg=backgroundcolor)
             canvas.update_idletasks()
             time.sleep(0.2)
@@ -184,6 +184,7 @@ def start_timers():
         canvas.itemconfig(startstop_label, text=f"Press {get_normal_name(controls['startstop'])} to stop")
         update_time_left()
         ability_timer(30)  # start with normal 30s
+        play_sound(2)  # play sound immediately on start
 
 # stop timers
 def stop_timers():
@@ -196,6 +197,7 @@ def stop_timers():
     canvas.itemconfig(rounds_label, text="Rounds: 0")
     global rounds
     rounds = 0
+    play_sound(2)  # play stop sound
 
 # toggle timers with hotkey
 def toggle_timers():
@@ -250,6 +252,7 @@ def timercustom():
     t2.start()
     t3.start()
     t4.start()
+    play_sound(2)  # play sound immediately on start
 
 def start_normal_timer():
     global start_time, current_timer_length
@@ -294,12 +297,14 @@ def safe_register_key(key, action):
 def play_sound(nr_blinks):
     match nr_blinks:
         case 1:
-            winsound.Beep(900, 1000)  # 900 Hz for 1000 ms
+            pygame.mixer.music.load('sound10s.mp3')
+            pygame.mixer.music.play()
+        case 2:
+            pygame.mixer.music.load('soundStart.mp3')
+            pygame.mixer.music.play()
         case 3:
-            #winsound.MessageBeep()
-            winsound.Beep(900, 500)
-            winsound.Beep(900, 500)
-            winsound.Beep(900, 700)
+            pygame.mixer.music.load('soundAbility.mp3')
+            pygame.mixer.music.play()
         case _:
             pass
 
@@ -366,7 +371,7 @@ def change_controls():
     global control_dialog_open
     # open a simple input dialog to change controls
     dialog = tk.Toplevel(root)
-    dialog.title("Change Controls")
+    dialog.title("Settings")
     control_dialog_open = True
 
     def on_dialog_close():
@@ -380,7 +385,7 @@ def change_controls():
     
 
     # dialog window next to root window (left side)
-    dialog.geometry(f"255x220+{root.winfo_x() - 280}+{root.winfo_y()}")
+    dialog.geometry(f"255x250+{root.winfo_x() - 280}+{root.winfo_y()}")
 
     tk.Label(dialog, text="Start/Stop Timer:").grid(row=0, column=0, sticky="e")
     startstop_entry = tk.Entry(dialog)
@@ -402,7 +407,7 @@ def change_controls():
     exit_entry.insert(0, controls['exit'])
     exit_entry.grid(row=3, column=1)
 
-    tk.Label(dialog, text="Change Controls:").grid(row=4, column=0, sticky="e")
+    tk.Label(dialog, text="Open Settings:").grid(row=4, column=0, sticky="e")
     change_controls_entry = tk.Entry(dialog)
     change_controls_entry.insert(0, controls['change_controls'])
     change_controls_entry.grid(row=4, column=1)
@@ -422,6 +427,11 @@ def change_controls():
     custom_time_entry.insert(0, controls.get('custom_time', '40'))
     custom_time_entry.grid(row=7, column=1)
 
+    tk.Label(dialog, text="Sound Volume").grid(row=8, column=0, sticky="e")
+    volume_scale = tk.Scale(dialog, from_=0, to=100, orient=tk.HORIZONTAL, command=lambda val: pygame.mixer.music.set_volume(int(val)/100))
+    volume_scale.set(pygame.mixer.music.get_volume() * 100)
+    volume_scale.grid(row=8, column=1)
+
     def save_controls():
         global control_dialog_open
 
@@ -433,7 +443,8 @@ def change_controls():
             "change_controls": change_controls_entry.get(),
             "sound": sound_entry.get(),
             "timercustom": timercustom_entry.get(),
-            "custom_time": custom_time_entry.get()
+            "custom_time": custom_time_entry.get(), 
+            "volume": volume_scale.get()
         }
         controls_path = get_controls_path()
         with open(controls_path, "w", encoding='utf-8') as f:
@@ -445,18 +456,19 @@ def change_controls():
         # avoid restarting app
         unregister_hotkeys()
         controls.update(new_controls)
+        pygame.mixer.music.set_volume(controls["volume"] / 100)
         register_hotkey()
         change_labels()
 
     save_button = tk.Button(dialog, text="Save", command=save_controls, width=20)
-    save_button.grid(row=9, column=0, columnspan=2, pady=10)
+    save_button.grid(row=10, column=0, columnspan=2, pady=10)
 
 def change_labels():
     canvas.itemconfig(startstop_label, text=f"Press {get_normal_name(controls['startstop'])} to {'stop' if start_time else 'start'}")
     canvas.itemconfig(visibility_label, text=f"Press {get_normal_name(controls['visibility'])} to toggle visibility")
     canvas.itemconfig(clickthrough_label, text=f"Press {get_normal_name(controls['clickthrough'])} to toggle click-through")
     canvas.itemconfig(exit_label, text=f"Press {get_normal_name(controls['exit'])} to exit")
-    canvas.itemconfig(change_controls_label, text=f"Press {get_normal_name(controls['change_controls'])} to change controls")
+    canvas.itemconfig(change_controls_label, text=f"Press {get_normal_name(controls['change_controls'])} to open settings")
     canvas.itemconfig(sound_label, text=f"Press {get_normal_name(controls['sound'])} to turn sound {'on' if not sound_on else 'off'}")
     canvas.itemconfig(timercustom_label, text=f"Press {get_normal_name(controls['timercustom'])} for {controls.get('custom_time', '40')}s timer")
     
@@ -475,6 +487,8 @@ root.overrideredirect(True)
 canvas = tk.Canvas(root, width=180, height=290, bg=backgroundcolor, highlightthickness=0)
 canvas.pack(fill="both", expand=True)
 
+pygame.mixer.music.set_volume(controls["volume"] / 100)  # default volume from json
+
 # labels
 time_label = canvas.create_text(90, 30, text="Time left: 00s", font=("Arial", 14), fill="black", anchor="center", justify="center")
 rounds_label = canvas.create_text(90, 60, text="Rounds: 0", font=("Arial", 12), fill="black", anchor="center", justify="center")
@@ -482,7 +496,7 @@ startstop_label = canvas.create_text(90, 90, text=f"Press {get_normal_name(contr
 visibility_label = canvas.create_text(90, 120, text=f"Press {get_normal_name(controls['visibility'])} to toggle visibility", font=("Arial", 10), fill="black", anchor="center", justify="center")
 clickthrough_label = canvas.create_text(90, 150, text=f"Press {get_normal_name(controls['clickthrough'])} to toggle click-through", font=("Arial", 10), fill="black", anchor="center", justify="center")
 exit_label = canvas.create_text(90, 180, text=f"Press {get_normal_name(controls['exit'])} to exit", font=("Arial", 10), fill="black", anchor="center", justify="center")
-change_controls_label = canvas.create_text(90, 210, text=f"Press {get_normal_name(controls['change_controls'])} to change controls", font=("Arial", 10), fill="black", anchor="center", justify="center")
+change_controls_label = canvas.create_text(90, 210, text=f"Press {get_normal_name(controls['change_controls'])} to open settings", font=("Arial", 10), fill="black", anchor="center", justify="center")
 sound_label = canvas.create_text(90, 240, text=f"Press {get_normal_name(controls['sound'])} to turn sound {'on' if not sound_on else 'off'}", font=("Arial", 10), fill="black", anchor="center", justify="center")
 timercustom_label = canvas.create_text(90, 270, text=f"Press {get_normal_name(controls['timercustom'])} to start custom timer", font=("Arial", 10), fill="black", anchor="center", justify="center")
 #button = tk.Button(root, text="Start Timer", command=start_timers)  # button in main menu to start timer
