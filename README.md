@@ -18,12 +18,12 @@ Otherwise the app might crash.
 
 ---
 
-small bugs: 
+### small bugs: 
 - Timer overlay may not be click-through at first. Try again, works most of the time at second time.
 
 ---
 
-Used sounds:
+### Used sounds:
 - ability timer: UI Warning Buzz by SoundShelfStudio
 - timer 10s before ability: Notification Ping by DRAGON-STUDIO
 - start/stop timer: New Notification by Universfield
