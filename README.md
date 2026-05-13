@@ -20,7 +20,7 @@ Otherwise the app might crash.
 
 ---
 
-### small bugs: 
+### Small bugs: 
 - Timer overlay may not be click-through at first. Try again, works most of the time at second time.
 
 ---
