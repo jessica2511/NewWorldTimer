@@ -1,18 +1,21 @@
 # NewWorldTimer
 Small Timer Overlay for Isle Of Night - 2nd Boss
 
-controls fully customizable
+The App provides the following features:
+- 30s timer timer: notification whenever an ability is casted (blinking timer overlay - red)
+- timer 10s before an ability is casted (blinking timer overlay - yellow)
+- custom timer: 1st round will start with a different time. May be useful when boss enters a new phase. Will turn back to normal 30s after one round.
+- sounds with adjustable volume for every notification
+- fully customizable controls
+
 The .exe will generate a json file in its folder, after you changed the controls. 
-keep the json there, otherwise you will have to setup your controls again.
+Keep the json there, otherwise you will have to setup your controls again.
 
-if you had installed an earlier version, please delete the json.
-otherwise the app will crash, because of structural changes in the json.
-
-custom time for first round at second phase available 
--> switches back to normal 30s after one round
+If you had installed an earlier version, please delete the json created by the previous version.
+Otherwise the app might crash.
 
 small bugs: 
-timer overlay may not be click-through at first. try again, works most of the time at second time
+- Timer overlay may not be click-through at first. Try again, works most of the time at second time.
 
 Used sounds:
 - ability timer: UI Warning Buzz by SoundShelfStudio
