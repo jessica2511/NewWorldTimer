@@ -10,7 +10,7 @@
 
 ---
 
-### Notes 
+### Notes: 
 
 The .exe will generate a json file in its folder, after you changed the controls. 
 Keep the json there, otherwise you will have to setup your controls again.
