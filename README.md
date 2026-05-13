@@ -1,5 +1,5 @@
 # NewWorldTimer
-Small Timer Overlay for Isle Of Night - 2nd Boss
+## Small Timer Overlay for Isle Of Night - 2nd Boss
 
 The App provides the following features:
 - 30s timer timer: notification whenever an ability is casted (blinking timer overlay - red)
@@ -8,14 +8,20 @@ The App provides the following features:
 - sounds with adjustable volume for every notification
 - fully customizable controls
 
+---
+
 The .exe will generate a json file in its folder, after you changed the controls. 
 Keep the json there, otherwise you will have to setup your controls again.
 
 If you had installed an earlier version, please delete the json created by the previous version.
 Otherwise the app might crash.
 
+---
+
 small bugs: 
 - Timer overlay may not be click-through at first. Try again, works most of the time at second time.
+
+---
 
 Used sounds:
 - ability timer: UI Warning Buzz by SoundShelfStudio
