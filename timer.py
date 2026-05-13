@@ -19,7 +19,7 @@ import sys
 import json
 
 # create exe
-# pyinstaller --onefile --windowed --add-data "controls.json;." timer.py
+# pyinstaller --onefile --windowed --add-data "controls.json;." --add-data "sound10s.mp3;." --add-data "soundAbility.mp3;." --add-data "soundStart.mp3;." timer.py
 
 
 start_time = None
@@ -33,7 +33,6 @@ control_dialog_open = False
 sound_on = True
 
 pygame.mixer.init()
-
 
 def get_app_dir():
     if getattr(sys, 'frozen', False):
@@ -297,13 +296,13 @@ def safe_register_key(key, action):
 def play_sound(nr_blinks):
     match nr_blinks:
         case 1:
-            pygame.mixer.music.load('sound10s.mp3')
+            pygame.mixer.music.load(sound10s)
             pygame.mixer.music.play()
         case 2:
-            pygame.mixer.music.load('soundStart.mp3')
+            pygame.mixer.music.load(soundStart)
             pygame.mixer.music.play()
         case 3:
-            pygame.mixer.music.load('soundAbility.mp3')
+            pygame.mixer.music.load(soundAbility)
             pygame.mixer.music.play()
         case _:
             pass
@@ -474,6 +473,12 @@ def change_labels():
     
 
 # --- main ---
+
+# load sounds to temp folder for onefile exe
+sound10s = resource_path("sound10s.mp3")
+soundAbility = resource_path("soundAbility.mp3")
+soundStart = resource_path("soundStart.mp3")
+
 root = tk.Tk()  # tk-mainmenu
 
 # window setup
